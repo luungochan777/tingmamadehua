@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>听妈妈的话｜“把”字句房间整理游戏</title>
+<style>
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+    font-family:"Microsoft YaHei","PingFang SC",sans-serif;
+}
+body{
+    background:#222;
+    margin:0;
+    overflow-x:hidden;
+}
+/* 全屏启动封面 pic0.png */
+.start-screen{
+    position:fixed;
+    top:0;
+    left:0;
+    width:100vw;
+    height:100vh;
+    background:url("pic0.png") center center / cover no-repeat;
+    z-index:999;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-direction:column;
+    text-align:center;
+    color:#ffffff;
+}
+.start-screen::before{
+    content:"";
+    position:absolute;
+    inset:0;
+    background:rgba(0,0,0,0.38);
+}
+.start-content{
+    position:relative;
+    z-index:2;
+}
+.start-content h1{
+    font-size:44px;
+    margin-bottom:10px;
+    text-shadow:2px 2px 6px rgba(0,0,0,0.65);
+}
+.start-content p{
+    font-size:22px;
+    margin-bottom:32px;
+    text-shadow:1px 1px 4px rgba(0,0,0,0.65);
+}
+.start-btn{
+    padding:15px 42px;
+    font-size:21px;
+    border:none;
+    border-radius:999px;
+    background:#4285dd;
+    color:#fff;
+    cursor:pointer;
+    box-shadow:0 4px 14px rgba(0,0,0,0.32);
+    transition:0.2s;
+}
+.start-btn:hover{
+    background:#2e73c9;
+}
+/* 游戏主容器 */
+.game-container{
+    display:none;
+    width:100vw;
+    height:100vh;
+    position:relative;
+}
+.scene-wrap{
+    width:100%;
+    height:calc(100% - 260px);
+}
+.scene-wrap img{
+    width:100%;
+    height:100%;
+    object-fit:contain;
+    background:#000;
+    display:block;
+}
+/* 底部答题区域 左右分栏 */
+.bottom-panel{
+    height:260px;
+    background:#fff;
+    padding:20px 24px;
+    display:flex;
+    gap:20px;
+}
+/* 左侧妈妈区域 占1/6宽度 ~16.67% */
+.mom-side{
+    width:16.67%;
+    display:flex;
+    align-items:flex-start;
+    justify-content:center;
+}
+.mom-avatar{
+    width:100%;
+    max-width:160px;
+    height:auto;
+    max-height:220px;
+    object-fit:contain;
+}
+/* 右侧答题区域 占5/6宽度 */
+.quiz-side{
+    width:83.33%;
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+}
+.row-top{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:12px;
+    gap:12px;
+}
+.level-text{
+    font-size:20px;
+    font-weight:bold;
+    color:#222;
+}
+.next-btn{
+    padding:10px 26px;
+    font-size:18px;
+    border:none;
+    border-radius:8px;
+    background:#cccccc;
+    color:#666;
+    cursor:not-allowed;
+}
+.next-btn.active{
+    background:#4285dd;
+    color:#fff;
+    cursor:pointer;
+}
+/* 点击选词区 */
+.word-select{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    padding:12px;
+    background:#f5f7fa;
+    border-radius:8px;
+    margin-bottom:12px;
+    min-height:60px;
+}
+.word-item{
+    padding:8px 16px;
+    background:#4285dd;
+    color:#fff;
+    border-radius:6px;
+    font-size:18px;
+    cursor:pointer;
+    user-select:none;
+    transition:0.15s;
+}
+.word-item:hover{
+    background:#2e73c9;
+}
+/* 已选句子展示区 */
+.sentence-box{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    padding:12px;
+    border:2px dashed #999;
+    border-radius:8px;
+    min-height:60px;
+    margin-bottom:12px;
+}
+.sentence-box .word-item{
+    background:#339955;
+}
+.sentence-box .word-item:hover{
+    background:#22773d;
+}
+/* 答错样式：背景红色，文字保持白色 */
+.word-item-wrong{
+    background:#e63946 !important;
+    color:#fff !important;
+}
+/* 操作按钮区域 */
+.btn-row{
+    display:flex;
+    gap:12px;
+    margin-bottom:8px;
+}
+#submitBtn{
+    padding:10px 24px;
+    font-size:18px;
+    border:none;
+    border-radius:8px;
+    background:#339955;
+    color:#fff;
+    cursor:pointer;
+}
+#clearBtn{
+    padding:10px 24px;
+    font-size:18px;
+    border:none;
+    border-radius:8px;
+    background:#999;
+    color:#fff;
+    cursor:pointer;
+}
+.tip{
+    height:26px;
+    line-height:26px;
+    font-size:17px;
+}
+.error{
+    color:#d63031;
+}
+.success{
+    color:#009432;
+}
+.win-panel{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.65);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    z-index:100;
+}
+.win-box{
+    background:#fff;
+    padding:40px;
+    border-radius:16px;
+    text-align:center;
+}
+.win-box h3{
+    font-size:26px;
+    margin-bottom:16px;
+}
+.reset-btn{
+    margin-top:16px;
+    padding:10px 28px;
+    font-size:18px;
+    border:none;
+    border-radius:8px;
+    background:#4285dd;
+    color:#fff;
+    cursor:pointer;
+}
+/* 手机适配 */
+@media(max-width:680px){
+    .bottom-panel{
+        height:auto;
+        flex-direction:column;
+    }
+    .mom-side{
+        width:100%;
+    }
+    .mom-avatar{
+        width:auto;
+        height:180px;
+    }
+    .quiz-side{
+        width:100%;
+    }
+    .row-top{
+        flex-direction:column;
+        align-items:flex-start;
+        gap:10px;
+    }
+}
+</style>
+</head>
+<body>
+<!-- 全屏启动封面 pic0.png -->
+<div class="start-screen" id="startScreen">
+    <div class="start-content">
+        <h1>听妈妈的话</h1>
+        <p>“把”字句房间整理游戏</p>
+        <button class="start-btn" onclick="startGame()">开始游戏</button>
+    </div>
+</div>
+<div class="game-container" id="gameContainer">
+    <div class="scene-wrap">
+        <img id="roomScene" alt="卧室场景">
+    </div>
+    <!-- 底部分栏面板 妈妈占1/6 -->
+    <div class="bottom-panel">
+        <!-- 左侧妈妈区域 -->
+        <div class="mom-side">
+            <img class="mom-avatar" src="mom.png" alt="妈妈">
+        </div>
+        <!-- 右侧答题区域 -->
+        <div class="quiz-side">
+            <div class="row-top">
+                <div class="level-text" id="levelText">第1关</div>
+                <button class="next-btn" id="nextBtn" onclick="goNext()">下一关</button>
+            </div>
+            <!-- 点击选词区 -->
+            <div class="word-select" id="wordSelect"></div>
+            <!-- 拼接句子区 -->
+            <div class="sentence-box" id="sentenceBox"></div>
+            <div class="btn-row">
+                <button id="clearBtn" onclick="clearSentence()">清空</button>
+                <button id="submitBtn" onclick="checkAnswer()">确认</button>
+            </div>
+            <div class="tip" id="msgTip"></div>
+        </div>
+    </div>
+    <!-- 通关弹窗 -->
+    <div class="win-panel" id="winPanel">
+        <div class="win-box">
+            <h3>🎉恭喜全部闯关成功！</h3>
+            <p>房间变得干干净净，你学会正确使用“把”字句！</p>
+            <button class="reset-btn" onclick="restartGame()">重新开始游戏</button>
+        </div>
+    </div>
+</div>
+<script>
+// 关卡配置：原第4关熨衬衫后移两关为第6关；全部"一下"改为"一下儿"
+const levelList = [
+    {
+        sceneImg:"pic1.png",
+        levelName:"第1关",
+        words:["桌子","擦","请","一下儿","把"],
+        answer:"请把桌子擦一下儿"
+    },
+    {
+        sceneImg:"pic2.png",
+        levelName:"第2关",
+        words:["书","放在","书柜上","请","把"],
+        answer:"请把书放在书柜上"
+    },
+    {
+        sceneImg:"pic3.png",
+        levelName:"第3关",
+        words:["裤子","洗","一下儿","请","把"],
+        answer:"请把裤子洗一下儿"
+    },
+    {
+        sceneImg:"pic4.png",
+        levelName:"第4关",
+        words:["衣服","放到","衣柜里","请","把"],
+        answer:"请把衣服放到衣柜里"
+    },
+    {
+        sceneImg:"pic5.png",
+        levelName:"第5关",
+        words:["卧室","打扫","请","把","一下儿"],
+        answer:"请把卧室打扫一下儿"
+    },
+    {
+        sceneImg:"pic6.png",
+        levelName:"第6关",
+        words:["衬衫","熨","请","把","一下儿"],
+        answer:"请把衬衫熨一下儿"
+    },
+    {
+        sceneImg:"pic7.png",
+        levelName:"第7关",
+        words:["花","插到","花瓶里","请","把"],
+        answer:"请把花插到花瓶里"
+    }
+];
+let currentStage = 0;
+const startScreen = document.getElementById("startScreen");
+const gameContainer = document.getElementById("gameContainer");
+const roomSceneImg = document.getElementById("roomScene");
+const levelText = document.getElementById("levelText");
+const wordSelect = document.getElementById("wordSelect");
+const sentenceBox = document.getElementById("sentenceBox");
+const msgTip = document.getElementById("msgTip");
+const nextBtn = document.getElementById("nextBtn");
+const winPanel = document.getElementById("winPanel");
+
+// 渲染可选词语（随机打乱）
+function renderWordList(wordArr){
+    wordSelect.innerHTML = "";
+    const shuffled = [...wordArr].sort(()=>Math.random()-0.5);
+    shuffled.forEach(word=>{
+        const span = document.createElement("span");
+        span.className = "word-item";
+        span.innerText = word;
+        span.onclick = ()=>{
+            addWordToSentence(word);
+        };
+        wordSelect.appendChild(span);
+    })
+}
+// 添加词语到拼接框（自动清除红色背景）
+function addWordToSentence(text){
+    const span = document.createElement("span");
+    span.className = "word-item";
+    span.innerText = text;
+    span.onclick = ()=> {
+        span.remove();
+    };
+    sentenceBox.appendChild(span);
+    msgTip.innerText = "";
+    msgTip.className = "tip";
+    nextBtn.classList.remove("active");
+    clearWrongStyle();
+}
+// 清空拼接区域
+function clearSentence(){
+    sentenceBox.innerHTML = "";
+    msgTip.innerText = "";
+    msgTip.className = "tip";
+    nextBtn.classList.remove("active");
+}
+// 清除错误红色背景样式
+function clearWrongStyle(){
+    const allWords = sentenceBox.querySelectorAll(".word-item");
+    allWords.forEach(el=> el.classList.remove("word-item-wrong"));
+}
+// 获取拼接完整句子
+function getCombineText(){
+    const arr = Array.from(sentenceBox.querySelectorAll(".word-item"))
+        .map(el=>el.innerText);
+    return arr.join("");
+}
+// 刷新关卡：进入关卡显示上一号图（第1关显示pic0）
+function refreshStage(){
+    const data = levelList[currentStage];
+    levelText.innerText = data.levelName;
+    renderWordList(data.words);
+    clearSentence();
+    roomSceneImg.src = `pic${currentStage}.png`;
+}
+// 开始游戏
+function startGame(){
+    startScreen.style.display = "none";
+    gameContainer.style.display = "block";
+    refreshStage();
+}
+// 答案校验：答错词语背景变红，文字白色不变
+function checkAnswer(){
+    const userText = getCombineText();
+    const rightAns = levelList[currentStage].answer;
+    if(userText === rightAns){
+        msgTip.className = "tip success";
+        msgTip.innerText = "✅回答正确！画面更新！";
+        roomSceneImg.src = levelList[currentStage].sceneImg;
+        nextBtn.classList.add("active");
+        nextBtn.style.cursor = "pointer";
+        clearWrongStyle();
+    }else{
+        msgTip.className = "tip error";
+        msgTip.innerText = "❌不对哦，重新点击词语试一试";
+        nextBtn.classList.remove("active");
+        // 给拼接词语添加红色背景
+        const allWords = sentenceBox.querySelectorAll(".word-item");
+        allWords.forEach(el=> el.classList.add("word-item-wrong"));
+    }
+}
+// 下一关
+function goNext(){
+    if(!nextBtn.classList.contains("active")) return;
+    currentStage++;
+    if(currentStage >= levelList.length){
+        winPanel.style.display = "flex";
+        return;
+    }
+    refreshStage();
+}
+// 重新开局
+function restartGame(){
+    currentStage = 0;
+    winPanel.style.display = "none";
+    refreshStage();
+}
+// 回车快捷键确认
+document.addEventListener("keydown",e=>{
+    if(e.key === "Enter"){
+        checkAnswer();
+    }
+});
+</script>
+</body>
+</html>
